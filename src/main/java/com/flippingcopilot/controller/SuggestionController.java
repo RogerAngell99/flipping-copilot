@@ -45,6 +45,8 @@ public class SuggestionController {
     private final AccountStatusManager accountStatusManager;
     private final GrandExchangeUncollectedManager uncollectedManager;
     private final PriceGraphController graphPriceGraphController;
+    private final TimeframeSuggestionCache timeframeSuggestionCache; // ADICIONADO
+    private final SuggestionPreferencesManager suggestionPreferencesManager; // ADICIONADO
 
     private MainPanel mainPanel;
     private LoginPanel loginPanel;
@@ -59,6 +61,7 @@ public class SuggestionController {
         } else {
             pausedManager.setPaused(true);
             highlightController.removeAll();
+            timeframeSuggestionCache.clear(); // Limpa o cache ao pausar
             suggestionPanel.refresh();
         }
     }
@@ -120,6 +123,15 @@ public class SuggestionController {
             suggestionManager.setSuggestionError(null);
             suggestionManager.setSuggestionRequestInProgress(false);
             log.debug("Received suggestion: {}", newSuggestion.toString());
+
+            // Limpa o cache se a sugestão não for de venda, para não comparar itens diferentes
+            if (!newSuggestion.getType().equals("sell")) {
+                timeframeSuggestionCache.clear();
+            }
+            // Salva a nova sugestão no cache com o timeframe atual
+            timeframeSuggestionCache.cacheSuggestion(suggestionPreferencesManager.getTimeframe(), newSuggestion);
+
+
             accountStatusManager.resetSkipSuggestion();
             offerManager.setOfferJustPlaced(false);
             suggestionPanel.refresh();

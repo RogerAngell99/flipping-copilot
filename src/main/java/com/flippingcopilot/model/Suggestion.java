@@ -1,6 +1,7 @@
 package com.flippingcopilot.model;
 
 import com.flippingcopilot.ui.graph.model.Data;
+import com.flippingcopilot.util.GeTax;
 import com.flippingcopilot.util.MsgPackUtil;
 import com.google.gson.annotations.SerializedName;
 import lombok.*;
@@ -42,12 +43,15 @@ public class Suggestion {
         String string = "Flipping Copilot: ";
         switch (type) {
             case "buy":
-                string += String.format("Buy %s %s for %s gp",
-                        formatter.format(quantity), name, formatter.format(price));
+                long totalBuyPrice = (long) quantity * price;
+                string += String.format("Buy %s %s for %s gp (%s gp total)",
+                        formatter.format(quantity), name, formatter.format(price), formatter.format(totalBuyPrice));
                 break;
             case "sell":
-                string += String.format("Sell %s %s for %s gp",
-                        formatter.format(quantity), name, formatter.format(price));
+                int postTaxPricePerItem = GeTax.getPostTaxPrice(this.itemId, this.price);
+                long totalSellPrice = (long) quantity * postTaxPricePerItem;
+                string += String.format("Sell %s %s for %s gp (%s gp total after tax)",
+                        formatter.format(quantity), name, formatter.format(price), formatter.format(totalSellPrice));
                 break;
             case "abort":
                 string += "Abort " + name;
@@ -108,5 +112,3 @@ public class Suggestion {
         return s;
     }
 }
-
-

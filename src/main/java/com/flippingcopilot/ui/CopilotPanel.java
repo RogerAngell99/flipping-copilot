@@ -19,10 +19,12 @@ public class CopilotPanel extends JPanel {
         this.statsPanel = statsPanel;
         this.suggestionPanel = suggestionPanel;
         this.controlPanel = controlPanel;
-        
+
+        // Mantendo o BoxLayout original, que é o correto para este tipo de empilhamento vertical.
         setLayout(new BoxLayout(this, BoxLayout.Y_AXIS));
-        suggestionPanel.setMaximumSize(new Dimension(Integer.MAX_VALUE, suggestionPanel.getPreferredSize().height));
-        suggestionPanel.setMinimumSize(new Dimension(Integer.MIN_VALUE, suggestionPanel.getPreferredSize().height));
+
+        // Adicionando os painéis sem nenhuma restrição de tamanho,
+        // para que eles possam se ajustar livremente.
         add(suggestionPanel);
         add(Box.createRigidArea(new Dimension(0, 5)));
         add(controlPanel);
@@ -39,5 +41,10 @@ public class CopilotPanel extends JPanel {
         }
         suggestionPanel.refresh();
         controlPanel.refresh();
+
+        // ADICIONADO: Força o painel a revalidar seu layout e se redesenhar.
+        // Isso garante que ele se ajuste ao novo tamanho do SuggestionPanel após o login.
+        revalidate();
+        repaint();
     }
 }

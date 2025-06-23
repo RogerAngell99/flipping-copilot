@@ -97,6 +97,11 @@ public class Data {
         }
         for (int i = 0; i < mapSize; i++) {
             String key = (String) MsgPackUtil.decodePrimitive(b);
+            if (key == null) {
+                // Consume the value for the null key and skip
+                MsgPackUtil.decodePrimitive(b);
+                continue;
+            }
             switch (key) {
                 case "l1ht":
                     d.low1hTimes = MsgPackUtil.decodeInt32Array(b);
@@ -156,19 +161,23 @@ public class Data {
                     d.predictionHighIQRLower = MsgPackUtil.decodeInt32Array(b);
                     break;
                 case "id":
-                    d.itemId =  (int) (long)MsgPackUtil.decodePrimitive(b);
+                    Object idValue = MsgPackUtil.decodePrimitive(b);
+                    if (idValue != null) d.itemId = (int) (long) idValue;
                     break;
                 case "n":
                     d.name = (String) MsgPackUtil.decodePrimitive(b);
                     break;
                 case "dv":
-                    d.dailyVolume = (double) MsgPackUtil.decodePrimitive(b);
+                    Object dvValue = MsgPackUtil.decodePrimitive(b);
+                    if (dvValue != null) d.dailyVolume = (double) dvValue;
                     break;
                 case "sp":
-                    d.sellPrice = (long) (long) MsgPackUtil.decodePrimitive(b);
+                    Object spValue = MsgPackUtil.decodePrimitive(b);
+                    if(spValue != null) d.sellPrice = (long) spValue;
                     break;
                 case "bp":
-                    d.buyPrice = (long) MsgPackUtil.decodePrimitive(b);
+                    Object bpValue = MsgPackUtil.decodePrimitive(b);
+                    if(bpValue != null) d.buyPrice = (long) bpValue;
                     break;
                 default:
                     // discard value for unrecognised key

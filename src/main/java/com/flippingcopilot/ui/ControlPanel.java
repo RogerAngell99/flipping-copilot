@@ -16,6 +16,7 @@ public class ControlPanel extends JPanel {
     private final JPanel timeframePanel;
     private final JToggleButton btn5m;
     private final JToggleButton btn30m;
+    private final JToggleButton btn1h;
     private final JToggleButton btn2h;
     private final JToggleButton btn8h;
 
@@ -24,7 +25,7 @@ public class ControlPanel extends JPanel {
             SuggestionManager suggestionManager,
             SuggestionPreferencesManager preferencesManager) {
         this.preferencesManager = preferencesManager;
-        
+
         setLayout(new BoxLayout(this, BoxLayout.Y_AXIS));
         setBackground(ColorScheme.DARKER_GRAY_COLOR);
         setBorder(BorderFactory.createEmptyBorder(10, 15, 10, 15));
@@ -41,19 +42,22 @@ public class ControlPanel extends JPanel {
         labelPanel.setOpaque(false);
         labelPanel.add(timeframeLabel);
         JPanel buttonPanel = new JPanel();
-        buttonPanel.setLayout(new GridLayout(1, 4, 0, 0));
+        buttonPanel.setLayout(new GridLayout(1, 5, 0, 0));
         buttonPanel.setOpaque(false);
         ButtonGroup timeframeButtonGroup = new ButtonGroup();
         btn5m = createTimeframeButton("5m", 5, suggestionManager);
         btn30m = createTimeframeButton("30m", 30, suggestionManager);
+        btn1h = createTimeframeButton("1h", 60, suggestionManager);
         btn2h = createTimeframeButton("2h", 120, suggestionManager);
         btn8h = createTimeframeButton("8h", 480, suggestionManager);
         timeframeButtonGroup.add(btn5m);
         timeframeButtonGroup.add(btn30m);
+        timeframeButtonGroup.add(btn1h);
         timeframeButtonGroup.add(btn2h);
         timeframeButtonGroup.add(btn8h);
         buttonPanel.add(btn5m);
         buttonPanel.add(btn30m);
+        buttonPanel.add(btn1h);
         buttonPanel.add(btn2h);
         buttonPanel.add(btn8h);
         timeframePanel.add(labelPanel);
@@ -96,11 +100,12 @@ public class ControlPanel extends JPanel {
             SwingUtilities.invokeLater(this::refresh);
             return;
         }
-        
+
         int tf = preferencesManager.getTimeframe();
         btn5m.setSelected(tf == 5);
         btn30m.setSelected(tf == 30);
+        btn1h.setSelected(tf == 60);
         btn2h.setSelected(tf == 120);
         btn8h.setSelected(tf == 480);
     }
-} 
+}
