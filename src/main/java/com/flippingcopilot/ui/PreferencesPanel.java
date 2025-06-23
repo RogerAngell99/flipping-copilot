@@ -4,11 +4,13 @@ import com.flippingcopilot.controller.PremiumInstanceController;
 import com.flippingcopilot.model.SuggestionPreferencesManager;
 import com.flippingcopilot.model.SuggestionManager;
 import net.runelite.client.ui.ColorScheme;
+import net.runelite.client.util.ImageUtil;
 
 import javax.inject.Inject;
 import javax.inject.Singleton;
 import javax.swing.*;
 import java.awt.*;
+import java.awt.image.BufferedImage;
 
 @Singleton
 public class PreferencesPanel extends JPanel {
@@ -19,6 +21,11 @@ public class PreferencesPanel extends JPanel {
     private final JPanel f2pOnlyButton;
     private final PreferencesToggleButton f2pOnlyModeToggleButton;
     private final BlacklistDropdownPanel blacklistDropdownPanel;
+    private Runnable onBack;
+
+    public void setOnBack(Runnable onBack) {
+        this.onBack = onBack;
+    }
 
     @Inject
     public PreferencesPanel(
@@ -34,14 +41,25 @@ public class PreferencesPanel extends JPanel {
         setBorder(BorderFactory.createEmptyBorder(10, 15, 10, 15));
         setBounds(0, 0, 300, 150);
 
+        JPanel titlePanel = new JPanel(new BorderLayout());
+        titlePanel.setBackground(ColorScheme.DARKER_GRAY_COLOR);
+
         JLabel preferencesTitle = new JLabel("Suggestion Settings");
         preferencesTitle.setForeground(Color.WHITE);
         preferencesTitle.setFont(preferencesTitle.getFont().deriveFont(Font.BOLD));
-        preferencesTitle.setAlignmentX(Component.CENTER_ALIGNMENT);
-        preferencesTitle.setMinimumSize(new Dimension(300, preferencesTitle.getPreferredSize().height));
-        preferencesTitle.setMaximumSize(new Dimension(300, preferencesTitle.getPreferredSize().height));
         preferencesTitle.setHorizontalAlignment(SwingConstants.CENTER);
-        add(preferencesTitle);
+        titlePanel.add(preferencesTitle, BorderLayout.CENTER);
+
+        BufferedImage gearIconImg = ImageUtil.loadImageResource(getClass(), "/preferences-icon.png");
+        JLabel backButton = UIUtilities.buildButton(ImageUtil.resizeImage(gearIconImg, 16, 16), "Back to suggestions", () -> {
+            if (onBack != null) {
+                onBack.run();
+            }
+        });
+        titlePanel.add(backButton, BorderLayout.WEST);
+        titlePanel.setMaximumSize(new Dimension(Integer.MAX_VALUE, titlePanel.getPreferredSize().height));
+        add(titlePanel);
+
         add(Box.createRigidArea(new Dimension(0, 8)));
         add(this.blacklistDropdownPanel);
 

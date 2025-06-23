@@ -106,6 +106,7 @@ public class SuggestionPanel extends JPanel {
         this.premiumInstanceController = premiumInstanceController;
         this.timeframeSuggestionCache = timeframeSuggestionCache;
         this.suggestionPreferencesManager = suggestionPreferencesManager;
+        this.preferencesPanel.setOnBack(this::showSuggestionView);
 
         setLayout(new BorderLayout());
         setBackground(ColorScheme.DARKER_GRAY_COLOR);
