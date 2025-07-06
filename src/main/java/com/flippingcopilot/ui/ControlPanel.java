@@ -14,23 +14,21 @@ public class ControlPanel extends JPanel {
 
     private final SuggestionPreferencesManager preferencesManager;
     private final JPanel timeframePanel;
-    private final JToggleButton btn5m;
-    private final JToggleButton btn30m;
-    private final JToggleButton btn2h;
-    private final JToggleButton btn8h;
+    private final JSlider timeframeSlider;
+    private final JLabel timeframeValueLabel;
 
     @Inject
     public ControlPanel(
             SuggestionManager suggestionManager,
             SuggestionPreferencesManager preferencesManager) {
         this.preferencesManager = preferencesManager;
-        
+
         setLayout(new BoxLayout(this, BoxLayout.Y_AXIS));
         setBackground(ColorScheme.DARKER_GRAY_COLOR);
         setBorder(BorderFactory.createEmptyBorder(10, 15, 10, 15));
         setBounds(0, 0, 300, 150);
 
-        // Add timeframe buttons
+        // Add timeframe slider
         timeframePanel = new JPanel();
         timeframePanel.setLayout(new BoxLayout(timeframePanel, BoxLayout.Y_AXIS));
         timeframePanel.setOpaque(false);
@@ -40,55 +38,59 @@ public class ControlPanel extends JPanel {
         JPanel labelPanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 0, 0));
         labelPanel.setOpaque(false);
         labelPanel.add(timeframeLabel);
-        JPanel buttonPanel = new JPanel();
-        buttonPanel.setLayout(new GridLayout(1, 4, 0, 0));
-        buttonPanel.setOpaque(false);
-        ButtonGroup timeframeButtonGroup = new ButtonGroup();
-        btn5m = createTimeframeButton("5m", 5, suggestionManager);
-        btn30m = createTimeframeButton("30m", 30, suggestionManager);
-        btn2h = createTimeframeButton("2h", 120, suggestionManager);
-        btn8h = createTimeframeButton("8h", 480, suggestionManager);
-        timeframeButtonGroup.add(btn5m);
-        timeframeButtonGroup.add(btn30m);
-        timeframeButtonGroup.add(btn2h);
-        timeframeButtonGroup.add(btn8h);
-        buttonPanel.add(btn5m);
-        buttonPanel.add(btn30m);
-        buttonPanel.add(btn2h);
-        buttonPanel.add(btn8h);
-        timeframePanel.add(labelPanel);
-        timeframePanel.add(Box.createRigidArea(new Dimension(0, 3)));
-        timeframePanel.add(buttonPanel);
-        add(timeframePanel);
-    }
 
-    private JToggleButton createTimeframeButton(String label, int value, SuggestionManager suggestionManager) {
-        JToggleButton button = new JToggleButton();
-        button.addActionListener(e -> {
+        timeframeSlider = new JSlider(1, 480, preferencesManager.getTimeframe());
+        timeframeSlider.setOpaque(false);
+        timeframeSlider.addChangeListener(e -> {
+            int value = timeframeSlider.getValue();
             preferencesManager.setTimeframe(value);
-            suggestionManager.setSuggestionNeeded(true);
-        });
-        button.setMargin(new Insets(2, 4, 2, 4));
-        button.setFocusPainted(false);
-        button.setOpaque(true);
-        button.setBackground(ColorScheme.DARKER_GRAY_COLOR);
-        button.setForeground(ColorScheme.TEXT_COLOR);
-
-        // Set initial text as white
-        button.setText("<html><font color='rgb(198, 198, 198)'>" + label + "</font></html>");
-
-        // Change color and text when selected/unselected
-        button.addChangeListener(e -> {
-            if (button.isSelected()) {
-                button.setBackground(ColorScheme.BRAND_ORANGE);
-                button.setText("<html><font color='black'>" + label + "</font></html>");
-            } else {
-                button.setBackground(ColorScheme.DARKER_GRAY_COLOR);
-                button.setText("<html><font color='rgb(198, 198, 198)'>" + label + "</font></html>");
+            updateTimeframeLabel(value);
+            if (!timeframeSlider.getValueIsAdjusting()) {
+                suggestionManager.setSuggestionNeeded(true);
             }
         });
 
+        timeframeValueLabel = new JLabel();
+        updateTimeframeLabel(timeframeSlider.getValue());
+
+        JPanel sliderPanel = new JPanel(new BorderLayout());
+        sliderPanel.setOpaque(false);
+        sliderPanel.add(createIncrementButton("-", -1, suggestionManager), BorderLayout.WEST);
+        sliderPanel.add(timeframeSlider, BorderLayout.CENTER);
+        sliderPanel.add(createIncrementButton("+", 1, suggestionManager), BorderLayout.EAST);
+        sliderPanel.add(timeframeValueLabel, BorderLayout.SOUTH);
+
+
+        timeframePanel.add(labelPanel);
+        timeframePanel.add(Box.createRigidArea(new Dimension(0, 3)));
+        timeframePanel.add(sliderPanel);
+        add(timeframePanel);
+    }
+
+    private JButton createIncrementButton(String text, int adjustment, SuggestionManager suggestionManager) {
+        JButton button = new JButton(text);
+        button.addActionListener(e -> {
+            int newValue = timeframeSlider.getValue() + adjustment;
+            if (newValue >= 1 && newValue <= 480) {
+                timeframeSlider.setValue(newValue);
+                preferencesManager.setTimeframe(newValue);
+                suggestionManager.setSuggestionNeeded(true);
+            }
+        });
         return button;
+    }
+
+    private void updateTimeframeLabel(int minutes) {
+        int hours = minutes / 60;
+        int mins = minutes % 60;
+        String label = "";
+        if (hours > 0) {
+            label += hours + "h ";
+        }
+        if (mins > 0 || hours == 0) {
+            label += mins + "m";
+        }
+        timeframeValueLabel.setText(label.trim());
     }
 
     public void refresh() {
@@ -96,11 +98,9 @@ public class ControlPanel extends JPanel {
             SwingUtilities.invokeLater(this::refresh);
             return;
         }
-        
+
         int tf = preferencesManager.getTimeframe();
-        btn5m.setSelected(tf == 5);
-        btn30m.setSelected(tf == 30);
-        btn2h.setSelected(tf == 120);
-        btn8h.setSelected(tf == 480);
+        timeframeSlider.setValue(tf);
+        updateTimeframeLabel(tf);
     }
 } 
