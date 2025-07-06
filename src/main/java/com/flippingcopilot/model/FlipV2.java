@@ -54,13 +54,16 @@ public class FlipV2 {
     private String accountDisplayName;
 
     public long calculateProfit(Transaction transaction) {
-        long amountToClose = Math.min(openedQuantity - closedQuantity, transaction.getQuantity());
+        return calculateProfit(transaction.getItemId(), transaction.getQuantity(), transaction.getAmountSpent() / transaction.getQuantity());
+    }
+
+    public long calculateProfit(int itemId, int quantity, int price) {
+        long amountToClose = Math.min(openedQuantity - closedQuantity, quantity);
         if(amountToClose <= 0 ){
             return 0;
         }
         long gpOut = (spent * amountToClose) / openedQuantity;
-        int sellPrice  = transaction.getAmountSpent() / transaction.getQuantity();
-        int sellPricePostTax = GeTax.getPostTaxPrice(transaction.getItemId(), sellPrice);
+        int sellPricePostTax = GeTax.getPostTaxPrice(itemId, price);
         long gpIn = amountToClose * sellPricePostTax;
         return gpIn - gpOut;
     }

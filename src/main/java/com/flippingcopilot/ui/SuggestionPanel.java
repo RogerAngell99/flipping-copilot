@@ -48,6 +48,7 @@ public class SuggestionPanel extends JPanel {
     private final GrandExchange grandExchange;
     private final PriceGraphController priceGraphController;
     private final PremiumInstanceController premiumInstanceController;
+	private final FlipManager flipManager;
 
     private final JLabel suggestionText = new JLabel();
     private final JLabel suggestionIcon = new JLabel(new ImageIcon(ImageUtil.loadImageResource(getClass(),"/small_open_arrow.png")));
@@ -81,7 +82,8 @@ public class SuggestionPanel extends JPanel {
                            ClientThread clientThread,
                            HighlightController highlightController,
                            ItemManager itemManager,
-                           GrandExchange grandExchange, PriceGraphController priceGraphController, PremiumInstanceController premiumInstanceController) {
+                           GrandExchange grandExchange, PriceGraphController priceGraphController, PremiumInstanceController premiumInstanceController,
+                           FlipManager flipManager) {
         this.preferencesPanel = preferencesPanel;
         this.config = config;
         this.suggestionManager = suggestionManager;
@@ -98,6 +100,7 @@ public class SuggestionPanel extends JPanel {
         this.grandExchange = grandExchange;
         this.priceGraphController = priceGraphController;
         this.premiumInstanceController = premiumInstanceController;
+        this.flipManager = flipManager;
 
         // Create the layered pane first
         layeredPane.setLayout(null);  // LayeredPane needs null layout
@@ -283,6 +286,18 @@ public class SuggestionPanel extends JPanel {
                         " <FONT COLOR=" + highlightedColor + ">" + formatter.format(suggestion.getQuantity()) + "</FONT><br>" +
                         "<FONT COLOR=white>" + suggestion.getName() + "</FONT><br>" +
                         "for <FONT COLOR=" + highlightedColor + ">" + formatter.format(suggestion.getPrice()) + "</FONT> gp<br>";
+                if (suggestion.getType().equals("sell")) {
+                    long profit = 0;
+                    FlipV2 lastFlip = flipManager.getLastFlipByItemId(osrsLoginManager.getPlayerDisplayName(), suggestion.getItemId());
+                    if (lastFlip != null) {
+                        profit = lastFlip.calculateProfit(suggestion.getItemId(), suggestion.getQuantity(), suggestion.getPrice());
+                    }
+                    if (profit > 0) {
+                        suggestionString += "<FONT COLOR=green>(+" + formatter.format(profit) + " gp)</FONT>";
+                    } else if (profit < 0) {
+                        suggestionString += "<FONT COLOR=red>(" + formatter.format(profit) + " gp)</FONT>";
+                    }
+                }
                 setItemIcon(suggestion.getItemId());
                 break;
             default:
