@@ -1,6 +1,8 @@
 package com.flippingcopilot.controller;
 
 import com.flippingcopilot.model.OfferManager;
+import com.flippingcopilot.model.Suggestion;
+import com.flippingcopilot.model.SuggestionManager;
 import com.flippingcopilot.ui.graph.PriceGraphController;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -11,6 +13,9 @@ import net.runelite.api.widgets.Widget;
 import javax.inject.Inject;
 import javax.inject.Singleton;
 
+import static net.runelite.api.VarPlayer.CURRENT_GE_ITEM;
+import static net.runelite.api.Varbits.GE_OFFER_CREATION_TYPE;
+
 @Slf4j
 @Singleton
 @RequiredArgsConstructor(onConstructor_ = @Inject)
@@ -20,6 +25,8 @@ public class MenuHandler {
     private final Client client;
     private final OfferManager offerManager;
     private final PriceGraphController priceGraphController;
+    private final GrandExchange grandExchange;
+    private final SuggestionManager suggestionManager;
 
 
     public void injectCopilotPriceGraphMenuEntry(MenuEntryAdded event) {
@@ -51,11 +58,11 @@ public class MenuHandler {
             return;
         }
 
-        if(offerManager.isOfferCorrect()) {
+        if(offerDetailsCorrect()) {
             return;
         }
 
-        if(event.getOption().equals("Confirm")) {
+        if(event.getOption().equals("Confirm") && grandExchange.isSlotOpen()) {
             log.debug("Adding deprioritized menu entry for offer");
             client.getMenu()
                     .createMenuEntry(-1)
@@ -63,6 +70,22 @@ public class MenuHandler {
 
             event.getMenuEntry().setDeprioritized(true);
         }
+    }
+
+    private boolean offerDetailsCorrect() {
+        Suggestion suggestion = suggestionManager.getSuggestion();
+        if (suggestion == null) {
+            return false;
+        }
+        String offerType = client.getVarbitValue(GE_OFFER_CREATION_TYPE) == 1 ? "sell" : "buy";
+        if (client.getVarpValue(CURRENT_GE_ITEM) == suggestion.getItemId() && offerType.equals(suggestion.getType())) {
+            return grandExchange.getOfferPrice() == suggestion.getPrice()
+                    && grandExchange.getOfferQuantity() == suggestion.getQuantity();
+        } else if (client.getVarpValue(CURRENT_GE_ITEM) == offerManager.getViewedSlotItemId()
+                && offerManager.getViewedSlotItemPrice() > 0) {
+            return grandExchange.getOfferPrice() == offerManager.getViewedSlotItemPrice();
+        }
+        return false;
     }
 }
 
