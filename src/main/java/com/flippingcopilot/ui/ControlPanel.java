@@ -11,11 +11,12 @@ import java.awt.*;
 
 @Singleton
 public class ControlPanel extends JPanel {
-
     private final SuggestionPreferencesManager preferencesManager;
     private final JPanel timeframePanel;
     private final JSlider timeframeSlider;
     private final JLabel timeframeValueLabel;
+    private final JToggleButton sellFastButton;
+    private int previousTimeframe;
 
     @Inject
     public ControlPanel(
@@ -50,6 +51,22 @@ public class ControlPanel extends JPanel {
             }
         });
 
+        sellFastButton = new JToggleButton("Sell Fast");
+        sellFastButton.addActionListener(e -> {
+            if (sellFastButton.isSelected()) {
+                previousTimeframe = timeframeSlider.getValue();
+                timeframeSlider.setValue(1);
+                sellFastButton.setBackground(ColorScheme.BRAND_ORANGE);
+            } else {
+                timeframeSlider.setValue(previousTimeframe);
+                sellFastButton.setBackground(null);
+            }
+        });
+
+        JPanel sellFastButtonPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 0, 0));
+        sellFastButtonPanel.setOpaque(false);
+        sellFastButtonPanel.add(sellFastButton);
+
         timeframeValueLabel = new JLabel();
         updateTimeframeLabel(timeframeSlider.getValue());
 
@@ -58,12 +75,23 @@ public class ControlPanel extends JPanel {
         sliderPanel.add(createIncrementButton("-", -1, suggestionManager), BorderLayout.WEST);
         sliderPanel.add(timeframeSlider, BorderLayout.CENTER);
         sliderPanel.add(createIncrementButton("+", 1, suggestionManager), BorderLayout.EAST);
-        sliderPanel.add(timeframeValueLabel, BorderLayout.SOUTH);
 
+        JPanel infoPanel = new JPanel();
+        infoPanel.setLayout(new BoxLayout(infoPanel, BoxLayout.Y_AXIS));
+        infoPanel.setOpaque(false);
+
+        timeframeValueLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
+        sellFastButtonPanel.setAlignmentX(Component.CENTER_ALIGNMENT);
+
+        infoPanel.add(timeframeValueLabel);
+        infoPanel.add(Box.createRigidArea(new Dimension(0, 5)));
+        infoPanel.add(sellFastButtonPanel);
 
         timeframePanel.add(labelPanel);
         timeframePanel.add(Box.createRigidArea(new Dimension(0, 3)));
         timeframePanel.add(sliderPanel);
+        timeframePanel.add(Box.createRigidArea(new Dimension(0, 3)));
+        timeframePanel.add(infoPanel);
         add(timeframePanel);
     }
 
@@ -81,6 +109,10 @@ public class ControlPanel extends JPanel {
     }
 
     private void updateTimeframeLabel(int minutes) {
+        if (sellFastButton.isSelected() && minutes != 1) {
+            sellFastButton.setSelected(false);
+            sellFastButton.setBackground(null);
+        }
         int hours = minutes / 60;
         int mins = minutes % 60;
         String label = "";
@@ -99,6 +131,10 @@ public class ControlPanel extends JPanel {
             return;
         }
 
+        if (sellFastButton.isSelected()) {
+            sellFastButton.setSelected(false);
+            sellFastButton.setBackground(null);
+        }
         int tf = preferencesManager.getTimeframe();
         timeframeSlider.setValue(tf);
         updateTimeframeLabel(tf);
