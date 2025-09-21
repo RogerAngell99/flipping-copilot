@@ -515,6 +515,8 @@ public class SuggestionPanel extends JPanel {
         String text = "<b><font color='" + colorHex + "'>" + formattedProfit + "</font></b> profit";
         if (expectedDuration != null) {
             String formattedDuration = formatDuration(expectedDuration);
+            double profitPerHour = (expectedProfit / expectedDuration) * 3600;
+            text += " (" + formatProfit(profitPerHour) + "/h)";
             text += " in <b>" + formattedDuration + "</b>";
         }
         return text;
@@ -529,14 +531,15 @@ public class SuggestionPanel extends JPanel {
         Color profitColor = config.profitAmountColor();
 
         String colorHex = String.format("#%06X", (0xFFFFFF & profitColor.getRGB()));
-        return "<b><font color='" + colorHex + "'>" + formattedProfit + "</font></b> profit in <b>" + formattedDuration + "</b>";
+        double profitPerHour = (expectedProfit / expectedDuration) * 3600;
+        return "<b><font color='" + colorHex + "'>" + formattedProfit + "</font></b> profit in <b>" + formattedDuration + "</b> (" + formatProfit(profitPerHour) + "/h)";
     }
 
     private String formatProfit(double profit) {
         if (Math.abs(profit) >= 1_000_000) {
-            return String.format("%.1fM", profit / 1_000_000).replace(".0", "");
+            return String.format("%.1fM", profit / 1_000_000);
         } else if (Math.abs(profit) >= 1_000) {
-            return String.format("%.1fK", profit / 1_000).replace(".0", "");
+            return String.format("%.1fK", profit / 1_000);
         } else {
             return String.format("%.0f", profit);
         }
