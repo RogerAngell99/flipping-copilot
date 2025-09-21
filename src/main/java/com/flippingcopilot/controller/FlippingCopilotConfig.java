@@ -169,4 +169,14 @@ public interface FlippingCopilotConfig extends Config
     {
         return true;
     }
+
+    @ConfigItem(
+            keyName = "minProfitPerHour",
+            name = "Minimum Profit per Hour (K)",
+            description = "Automatically skip suggestions with profit per hour less than this value (in thousands). Set to 0 to disable."
+    )
+    default int minProfitPerHour()
+    {
+        return 200;
+    }
 }
