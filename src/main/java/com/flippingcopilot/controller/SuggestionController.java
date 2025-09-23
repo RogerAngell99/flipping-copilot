@@ -117,13 +117,25 @@ public class SuggestionController {
         suggestionManager.setGraphDataReadingInProgress(true);
         Suggestion oldSuggestion = suggestionManager.getSuggestion();
         Consumer<Suggestion> suggestionConsumer = (newSuggestion) -> {
-            if (newSuggestion.getType().equals("buy") && config.minProfitPerHour() > 0) {
-                Double expectedProfit = newSuggestion.getExpectedProfit();
-                Double expectedDuration = newSuggestion.getExpectedDuration();
-                if (expectedProfit != null && expectedDuration != null && expectedDuration > 0) {
-                    double profitPerHour = (expectedProfit / expectedDuration) * 3600;
-                    if (profitPerHour < config.minProfitPerHour() * 1000) {
-                        log.debug("Skipping suggestion with profit per hour: " + profitPerHour);
+            if (newSuggestion.getType().equals("buy")) {
+                if (config.minProfitPerHour() > 0) {
+                    Double expectedProfit = newSuggestion.getExpectedProfit();
+                    Double expectedDuration = newSuggestion.getExpectedDuration();
+                    if (expectedProfit != null && expectedDuration != null && expectedDuration > 0) {
+                        double profitPerHour = (expectedProfit / expectedDuration) * 3600;
+                        if (profitPerHour < config.minProfitPerHour() * 1000) {
+                            log.debug("Skipping suggestion with profit per hour: " + profitPerHour);
+                            accountStatusManager.setSkipSuggestion(newSuggestion.getId());
+                            suggestionManager.setSuggestionNeeded(true);
+                            suggestionManager.setSuggestionRequestInProgress(false);
+                            return;
+                        }
+                    }
+                }
+                if (config.minExpectedProfit() > 0) {
+                    Double expectedProfit = newSuggestion.getExpectedProfit();
+                    if (expectedProfit != null && expectedProfit < config.minExpectedProfit() * 1000) {
+                        log.debug("Skipping suggestion with expected profit: " + expectedProfit);
                         accountStatusManager.setSkipSuggestion(newSuggestion.getId());
                         suggestionManager.setSuggestionNeeded(true);
                         suggestionManager.setSuggestionRequestInProgress(false);

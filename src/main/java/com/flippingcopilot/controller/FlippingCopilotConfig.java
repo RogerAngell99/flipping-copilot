@@ -179,4 +179,14 @@ public interface FlippingCopilotConfig extends Config
     {
         return 200;
     }
+
+    @ConfigItem(
+            keyName = "minExpectedProfit",
+            name = "Minimum Expected Profit (K)",
+            description = "Automatically skip suggestions with expected profit less than this value (in thousands). Set to 0 to disable."
+    )
+    default int minExpectedProfit()
+    {
+        return 0;
+    }
 }
